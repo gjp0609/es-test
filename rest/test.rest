@@ -1,0 +1,141 @@
+### Search all
+POST {{url}}/_search?pretty
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "phone": "18888888888"
+          }
+        },
+        {
+          "term": {
+            "path": "C:/Files/Temp"
+          }
+        },
+        {
+          "match_phrase": {
+            "name": ".java"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "range": {
+            "size": {
+              "gte": 1
+            }
+          }
+        }
+      ]
+    }
+  },
+  "from": 0,
+  "size": 10,
+  "sort": [
+    {
+      "date": "desc"
+    }
+  ]
+}
+
+### 条件删除
+POST {{url}}/user-188/_delete_by_query
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "phone": "18888888888"
+          }
+        },
+        {
+          "term": {
+            "path": "C:/Files/Temp/pan"
+          }
+        }
+      ]
+    }
+  }
+}
+
+### 强制删除已标记删除文档
+POST {{url}}/user-188/_forcemerge?only_expunge_deletes=true
+Authorization: {{authorization}}
+
+### 检测分词 ik
+POST {{url}}/_analyze
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "analyzer": "ik_max_word",
+  "text": "矩形.as-a_lowMask@2x.png"
+}
+
+### 检测分词 ngram
+POST {{url}}/_analyze
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "tokenizer": "ngram",
+  "text": "矩形.as-a_lowMask@2x.png"
+}
+
+### 检测分词 path_hierarchy
+POST {{url}}/_analyze
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "tokenizer": "path_hierarchy",
+  "text": "C:/Files/Temp/pan/其他/华为音乐纯本地无广告去升级版（请在启动时拒绝联网）.apk"
+}
+
+### 查询 index
+GET {{url}}/_cat/indices?pretty
+Authorization: {{authorization}}
+Content-Type: application/json
+
+### 删除 index
+DELETE {{url}}/logstash-xxxxxxx
+Authorization: {{authorization}}
+Content-Type: application/json
+
+### 查询模版
+GET {{url}}/_template/
+Authorization: {{authorization}}
+Content-Type: application/json
+
+### 修改模版
+PUT {{url}}/_template/xxxxx
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{}
+
+### SQL 转换
+POST {{url}}/_sql/translate
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "query": "SELECT * FROM \"user-188\" WHERE match(name, 'aaa')"
+}
+
+### 删除索引
+DELETE {{url}}/xxxxxx
+Authorization: {{authorization}}
+
+### 删除数据流
+DELETE {{url}}/_data_stream/logs-my_app-default
+Authorization: {{authorization}}

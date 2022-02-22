@@ -1,0 +1,32 @@
+{
+    "name": "rss-server",
+    "version": "1.0.0",
+    "description": "rss-server",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/onysakura/rss-server.git"
+    },
+    "type": "commonjs",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/gjp0609/rss-server/issues"
+    },
+    "homepage": "https://github.com/gjp0609/rss-server#readme",
+    "scripts": {
+        "install": "npm install",
+        "create indexes": "node src/main.js indexes",
+        "init data": "node src/main.js initData",
+        "query": "node src/main.js query",
+        "query by SQL": "node src/main.js queryBySQL"
+    },
+    "dependencies": {
+        "@elastic/elasticsearch": "8.0.0",
+        "dotenv": "^16.0.0"
+    },
+    "devDependencies": {
+        "prettier": "^2.5.1"
+    }
+}
