@@ -147,10 +147,10 @@ async function insertDoc(indexName, data, end) {
     }
 }
 
-async function query() {
+async function query(indexName) {
     let result;
     result = await client.search({
-        index: 'text',
+        index: indexName,
         query: {
             bool: {
                 must: [
@@ -158,10 +158,10 @@ async function query() {
                         term: { phone: '18888888888' }
                     },
                     {
-                        match_phrase: { name: '人口统' }
+                        match_phrase: { name: 'test' }
                     },
                     {
-                        match_phrase: { name: '.docx' }
+                        match_phrase: { name: '.js' }
                     }
                 ]
                 /*filter: [
@@ -176,13 +176,11 @@ async function query() {
     console.log('result:', result.hits.hits);
 }
 
-async function queryBySQL() {
-    return await client.sql.query({
-        query: `SELECT *
-                FROM "other"
-                WHERE phone = '18888888888'
-                  and match(name, '人口统', 'auto_generate_synonyms_phrase_query=true')`
+async function queryBySQL(indexName) {
+    let result = await client.sql.query({
+        query: `SELECT * FROM "${indexName}" WHERE phone = '18888888888' and match(name, 'test', 'auto_generate_synonyms_phrase_query=true') limit 10`
     });
+    console.log(result);
 }
 
 module.exports = {
