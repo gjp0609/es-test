@@ -1,7 +1,9 @@
-const { query, queryBySQL, initIndices, listFiles, insertDoc } = require('./crud');
+const { initIndices, saveFilesInfo, query, queryBySQL } = require('./crud');
 
 (async () => {
-    let indexName = 'user-188';
+    let dir = 'R:/';
+    let indexName = 'user-177';
+    let userPhone = '17777777777';
     let operation = process.argv[2] ?? 'none';
     console.log('start:', operation);
     switch (operation) {
@@ -12,8 +14,7 @@ const { query, queryBySQL, initIndices, listFiles, insertDoc } = require('./crud
         }
         case 'initData': {
             // 插入数据
-            await listFiles('C:/Files/Temp', indexName, '18888888888');
-            await insertDoc(indexName, undefined, true);
+            await saveFilesInfo(dir, indexName, userPhone, 10000);
             break;
         }
         case 'query': {

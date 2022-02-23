@@ -4,6 +4,7 @@ const path = require('path');
 const { TYPES, formatDate } = require('./common');
 require('dotenv').config();
 
+// 创建 ES 客户端
 const client = new Client({
     node: process.env.ES_URL,
     auth: {
@@ -15,6 +16,12 @@ const client = new Client({
     }
 });
 
+/**
+ * 创建索引
+ *
+ * @param indices 索引
+ * @returns {Promise<void>}
+ */
 async function initIndices(indices) {
     let result;
     for (let index of indices) {
@@ -78,7 +85,22 @@ async function initIndices(indices) {
 
 let fileCount = 0;
 
-async function listFiles(dir, indexName, user) {
+/**
+ * 读取本地目录文件数据，插入 ES
+ *
+ * @param dir 文件夹
+ * @param indexName 索引
+ * @param user 用户
+ * @param batchNum 批量数量，默认 10000
+ * @returns {Promise<void>}
+ */
+async function saveFilesInfo(dir, indexName, user, batchNum) {
+    await listFiles(dir, indexName, user, batchNum);
+    // 插入剩余数据
+    await insertDoc(indexName, undefined, false, batchNum);
+}
+
+async function listFiles(dir, indexName, user, batchNum) {
     let files;
     try {
         files = fs.readdirSync(path.resolve(dir));
@@ -111,14 +133,19 @@ async function listFiles(dir, indexName, user) {
                 }
             }
             try {
-                await insertDoc(indexName, {
-                    name: filename,
-                    path: filePath.replaceAll(/\\/g, '/'),
-                    type: type,
-                    size,
-                    date: date.getTime(),
-                    phone: user
-                });
+                await insertDoc(
+                    indexName,
+                    {
+                        name: filename,
+                        path: filePath.replaceAll(/\\/g, '/'),
+                        type: type,
+                        size,
+                        date: date.getTime(),
+                        phone: user
+                    },
+                    true,
+                    batchNum
+                );
             } catch (e) {
                 console.log(e);
             }
@@ -126,27 +153,57 @@ async function listFiles(dir, indexName, user) {
     }
 }
 
-let operations = [];
 const tempCount = 10000;
+let tempDatas = [];
 
-async function insertDoc(indexName, data, end) {
+/**
+ * 插入文档
+ *
+ * @param indexName 索引名称
+ * @param data 数据对象
+ * @param batch 是否批量插入，true 则到足够数量才插入，false 则立即插入当前和之前的数据；默认 false
+ * @param batchNum 批量数量，默认 10000
+ * @returns {Promise<void>}
+ */
+async function insertDoc(indexName, data, batch, batchNum) {
     if (data) {
-        operations.push({ index: { _index: indexName } });
-        operations.push(data);
+        tempDatas.push(data);
     }
-    if (end || operations.length >= tempCount) {
-        let result = await client.bulk({
-            refresh: true,
-            operations
-        });
-        console.log(`${new Date()} insert ${operations.length / 2} document`);
-        if (result.errors) {
-            console.log(result.items[0]);
-        }
-        operations = [];
+    if (!(batch ?? false) || tempDatas.length >= (batchNum ?? tempCount)) {
+        await insertDocs(indexName, tempDatas);
+        tempDatas = [];
     }
 }
 
+/**
+ * 批量插入文档
+ *
+ * @param indexName 索引名称
+ * @param datas 数据对象列表
+ * @returns {Promise<void>}
+ */
+async function insertDocs(indexName, datas) {
+    let operations = [];
+    for (let data of datas) {
+        operations.push({ index: { _index: indexName } });
+        operations.push(data);
+    }
+    let result = await client.bulk({
+        refresh: true,
+        operations
+    });
+    if (result.errors) {
+        console.log('error:', result.items[0]);
+    }
+    console.log(`insert ${operations.length / 2} document`);
+}
+
+/**
+ * 查询数据
+ *
+ * @param indexName 索引名称
+ * @returns {Promise<void>}
+ */
 async function query(indexName) {
     let result;
     result = await client.search({
@@ -176,6 +233,12 @@ async function query(indexName) {
     console.log('result:', result.hits.hits);
 }
 
+/**
+ * 查询数据
+ *
+ * @param indexName 索引名称
+ * @returns {Promise<void>}
+ */
 async function queryBySQL(indexName) {
     let result = await client.sql.query({
         query: `SELECT * FROM "${indexName}" WHERE phone = '18888888888' and match(name, 'test', 'auto_generate_synonyms_phrase_query=true') limit 10`
@@ -186,7 +249,9 @@ async function queryBySQL(indexName) {
 module.exports = {
     initIndices,
     insertDoc,
+    insertDocs,
     listFiles,
+    saveFilesInfo,
     query,
     queryBySQL
 };
