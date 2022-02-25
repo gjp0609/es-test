@@ -19,6 +19,7 @@ function formatDate(time) {
     );
 }
 const TYPES = [
+    { name: 'dir', suffix: [] },
     { name: 'image', suffix: ['.png', '.jpg', '.jpeg', '.bmp', '.gif'] },
     { name: 'text', suffix: ['.txt', '.md', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.wps', '.json'] },
     { name: 'video', suffix: ['.mkv', '.mp4'] },

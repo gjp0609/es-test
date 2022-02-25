@@ -63,9 +63,8 @@ async function initIndices(indices) {
                             type: 'text',
                             analyzer: 'path_analyzer',
                             fields: {
-                                tree: {
-                                    type: 'text',
-                                    analyzer: 'path_analyzer'
+                                keyword: {
+                                    type: 'keyword'
                                 }
                             }
                         },
@@ -116,39 +115,40 @@ async function listFiles(dir, indexName, user, batchNum) {
         if (!stats) {
             continue;
         }
+        let size = stats.size;
+        let date = stats.birthtime;
+        let type = TYPES.length - 1;
         if (stats.isDirectory()) {
+            type = 0;
             await listFiles(filePath, indexName, user);
         } else {
             fileCount++;
             if (fileCount % 10000 === 0) {
                 console.log(`${formatDate(new Date())} progress: ${fileCount / 10000}w`);
             }
-            let size = stats.size;
-            let date = stats.birthtime;
-            let type = TYPES.length - 1;
             for (let i = 0; i < TYPES.length; i++) {
                 if (TYPES[i].suffix.indexOf(filename.substring(filename.lastIndexOf('.')).toLowerCase()) > 0) {
                     type = i;
                     break;
                 }
             }
-            try {
-                await insertDoc(
-                    indexName,
-                    {
-                        name: filename,
-                        path: filePath.replaceAll(/\\/g, '/'),
-                        type: type,
-                        size,
-                        date: date.getTime(),
-                        phone: user
-                    },
-                    true,
-                    batchNum
-                );
-            } catch (e) {
-                console.log(e);
-            }
+        }
+        try {
+            await insertDoc(
+                indexName,
+                {
+                    name: filename,
+                    path: dir.replaceAll(/\\/g, '/'),
+                    type,
+                    size,
+                    date: date.getTime(),
+                    phone: user
+                },
+                true,
+                batchNum
+            );
+        } catch (e) {
+            console.log(e);
         }
     }
 }

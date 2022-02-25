@@ -43,6 +43,33 @@ Content-Type: application/json
   ]
 }
 
+### Search dir
+POST {{url}}/_search?pretty
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "path.keyword": "R:/Files/Backup/File/2020-06"
+          }
+        }
+      ]
+    }
+  },
+  "from": 0,
+  "size": 100,
+  "sort": [
+    {
+      "date": "desc"
+    }
+  ]
+}
+
+
 ### 条件删除
 POST {{url}}/user-188/_delete_by_query
 Authorization: {{authorization}}

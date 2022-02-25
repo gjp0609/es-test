@@ -16,7 +16,7 @@
     },
     "homepage": "https://github.com/gjp0609/rss-server#readme",
     "scripts": {
-        "install": "npm install",
+        "_install": "npm install",
         "create indexes": "node src/main.js indexes",
         "init data": "node src/main.js initData",
         "query": "node src/main.js query",
